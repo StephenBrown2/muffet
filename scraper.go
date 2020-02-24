@@ -45,16 +45,18 @@ func (sc scraper) Scrape(n *html.Node, base *url.URL) map[string]error {
 		return ok
 	}) {
 		for _, a := range atomToAttributes[n.DataAtom] {
-			s := normalizeURL(scrape.Attr(n, a))
-
-			if s == "" || sc.isURLExcluded(s) {
-				continue
-			}
+			s := scrape.Attr(n, a)
 
 			u, err := url.Parse(s)
 
 			if err != nil {
 				us[s] = err
+				continue
+			}
+
+			u.Fragment = removeSpaces(u.Fragment)
+
+			if u.String() == "" || sc.isURLExcluded(u.String()) {
 				continue
 			}
 
@@ -79,7 +81,7 @@ func (sc scraper) isURLExcluded(u string) bool {
 	return false
 }
 
-func normalizeURL(s string) string {
+func removeSpaces(s string) string {
 	return strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
 			return -1
